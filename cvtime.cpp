@@ -48,20 +48,31 @@ int main(int argc,char** argv){
 			//imshow(fileNames[i],calibImage);
 			bool foundBoard = findChessboardCorners(calibImage,boardSize,corners);
 			if(foundBoard){
-				std::cout << "Yay!\n"; 
+				for(int j = 0;j < corners.size();j++){
+					for(int k = -5;k < 6;k++){
+						//calibImage.at<Vec3b>(corners[j].x,corners[j].y + k) = Vec3b(1,0,0);
+						//calibImage.at<uchar>((int)corners[j].x,(int)corners[j].y + k) = 128;
+						//Vec3b & col = calibImage.at<Vec3b>(10+k,1);
+						Vec3b & col = calibImage.at<Vec3b>(corners[j].y+k,corners[j].x);
+						col[0] = 0;
+						col[1] = 0;
+						col[2] = 255;
+					}
+				}
+				imshow(fileNames[i],calibImage);
 			} else {
-				std::cout << "Awww D:\n"; 
+				std::cout << "Failed to find chessboard in " << fileNames[i] << "\n"; 
 			}
 		}
 	}
 	
 
-	/*
+	
 	while(true){
 		capture >> captFeed;
 		imshow("Capture",captFeed);
 	}
-	*/
+	
 
 	return 0;
 }
