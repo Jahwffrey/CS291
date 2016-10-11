@@ -22,6 +22,8 @@ char *fileNames [] = {"../boards/frame0054.jpg",
 "../boards/frame0161.jpg",
 "../boards/frame0228.jpg"};
 
+CvSize boardSize = {8,6};//new CvSize(8,6);
+
 int main(int argc,char** argv){
 	if(argc != 2){
 		std::cout << "Please provide camera number\n";
@@ -38,18 +40,28 @@ int main(int argc,char** argv){
 	for(int i = 0;i < calibFilesNum;i++){
 		Mat calibImage;
 		calibImage = imread(fileNames[i],CV_LOAD_IMAGE_COLOR);
+		vector<Point2f> corners;
+
 		if(!calibImage.data){
 			std::cout << "Failed to read " << fileNames[i] << "!!\n";
 		} else {
-			imshow(fileNames[i],calibImage);
+			//imshow(fileNames[i],calibImage);
+			bool foundBoard = findChessboardCorners(calibImage,boardSize,corners);
+			if(foundBoard){
+				std::cout << "Yay!\n"; 
+			} else {
+				std::cout << "Awww D:\n"; 
+			}
 		}
 	}
 	
 
+	/*
 	while(true){
 		capture >> captFeed;
 		imshow("Capture",captFeed);
 	}
+	*/
 
 	return 0;
 }
