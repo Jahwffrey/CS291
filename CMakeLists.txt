@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.0)
+PROJECT(cvtime)
+FIND_PACKAGE(OpenCV REQUIRED)
+SET(MySources cvtime.cpp)
+ADD_EXECUTABLE(cvtime ${MySources})
+TARGET_LINK_LIBRARIES(cvtime ${OpenCV_LIBS})
+SET_SOURCE_FILES_PROPERTIES(${MySources} PROTERTIES LANGUAGE CXX)
