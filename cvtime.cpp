@@ -114,7 +114,7 @@ int main(int argc,char** argv){
 		projectPoints(Mat(objPoints[i]),rvecOut[i],tvecOut[i],camMatrix,distCoeffs,immPts);
 		error = norm(Mat(imgPoints[i]),Mat(immPts),CV_L2);
 		totalError += (error * error);
-		pointNum += imgPoints[i].size();
+		pointNum += objPoints[i].size();
 	}
 	
 	avgError = std::sqrt(totalError/pointNum);
