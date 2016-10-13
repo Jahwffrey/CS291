@@ -2,6 +2,10 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/opencv.hpp>
 #include <iostream>
+#include <OpenGL/gl.h>
+#include <OpenGL/glu.h>
+#include <GLUT/GLUT.h>
+
 
 using namespace cv;
 
@@ -39,7 +43,13 @@ int main(int argc,char** argv){
 		cameraNumber = atoi(argv[1]);
 	}
 
-	
+	//start openGL
+	glutInit(&argc, &argv[0]);
+        glutInitDisplayMode( GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH );
+    	glutInitWindowPosition( 100, 100 );
+    	glutInitWindowSize( width, height );
+    	glutCreateWindow( "test" );    
+
 	capture = VideoCapture(cameraNumber);
 
 	//Set up object points
