@@ -5,40 +5,33 @@
 
 using namespace cv;
 
-int cameraNumber;
-int width = 640;
-int height = 480;
-const int calibFilesNum = 11;
-
-char *fileNames [] = {"../boards/frame0054.jpg",	
-"../boards/frame0124.jpg",
-"../boards/frame0174.jpg",
-"../boards/frame0249.jpg",
-"../boards/frame0070.jpg",
-"../boards/frame0141.jpg",
-"../boards/frame0190.jpg",
-"../boards/frame0274.jpg",
-"../boards/frame0107.jpg",
-"../boards/frame0161.jpg",
-"../boards/frame0228.jpg"};
-
-CvSize boardSize = {8,6};//new CvSize(8,6);
-
-vector< vector<Point2f> > imgPoints;
-vector< vector<Point3f> > objPoints; 
-
-/*[48][3] =
-
-	{0,0,0},{1,0,0},{2,0,0},{3,0,0},{4,0,0},{5,0,0},{6,0,0},{7,0,0},
-	{0,1,0},{1,1,0},{2,1,0},{3,1,0},{4,1,0},{5,1,0},{6,1,0},{7,1,0},
-	{0,2,0},{1,2,0},{2,2,0},{3,2,0},{4,2,0},{5,2,0},{6,2,0},{7,2,0},
-	{0,3,0},{1,3,0},{2,3,0},{3,3,0},{4,3,0},{5,3,0},{6,3,0},{7,3,0},
-	{0,4,0},{1,4,0},{2,4,0},{3,4,0},{4,4,0},{5,4,0},{6,4,0},{7,4,0},
-	{0,5,0},{1,5,0},{2,5,0},{3,5,0},{4,5,0},{5,5,0},{6,5,0},{7,5,0}
-};*/
-
-
 int main(int argc,char** argv){
+	int cameraNumber;
+	int width = 640;
+	int height = 480;
+	const int calibFilesNum = 11;
+
+	char *fileNames [] = {"../boards/frame0054.jpg",	
+		"../boards/frame0124.jpg",
+		"../boards/frame0174.jpg",
+		"../boards/frame0249.jpg",
+		"../boards/frame0070.jpg",
+		"../boards/frame0141.jpg",
+		"../boards/frame0190.jpg",
+		"../boards/frame0274.jpg",
+		"../boards/frame0107.jpg",
+		"../boards/frame0161.jpg",
+		"../boards/frame0228.jpg"};
+
+	CvSize boardSize = {8,6};//new CvSize(8,6);
+
+	vector< vector<Point2f> > imgPoints;
+	vector< vector<Point3f> > objPoints;
+
+	Size calibSize;
+	VideoCapture capture;
+	Mat captFeed;
+
 	if(argc != 2){
 		std::cout << "Please provide camera number\n";
 		return 0;
@@ -46,22 +39,10 @@ int main(int argc,char** argv){
 		cameraNumber = atoi(argv[1]);
 	}
 
-	//InputArray inptArr = InputArray(objPoints);
-	Size calibSize;
-	VideoCapture capture;
-	Mat captFeed;
+	
 	capture = VideoCapture(cameraNumber);
 
 	//Set up object points
-	/*for(int i = 0;i < 6;i++){
-		vector<Point3f> newVect;
-		objPoints.push_back(newVect);
-		for(int j = 0;j < 8;j++){
-			Point3f val = Point3f(j,i,0);
-			objPoints[i].push_back(val);
-		}
-	}*/
-
 	for(int im = 0;im < calibFilesNum;im++){
 		vector<Point3f> newVect;
 		objPoints.push_back(newVect);
