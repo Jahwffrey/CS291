@@ -21,10 +21,13 @@ char *fileNames [] = {"../boards/frame0054.jpg",
 	"../boards/frame0161.jpg",
 	"../boards/frame0228.jpg"};
 
+Mat camMatrix = Mat::eye(3,3,CV_64F);
+Mat distCoeffs = Mat::zeros(4,1,CV_64F);
 
 void drawFunc(){
 	Mat readImage = imread(fileNames[0],CV_LOAD_IMAGE_COLOR);
-	Mat backImage = Mat(readImage);
+	Mat backImage = readImage.clone();
+	undistort(backImage,readImage,camMatrix,distCoeffs);
 	flip(readImage,backImage,0);
 
 	glDrawPixels(backImage.size().width,backImage.size().height,GL_BGR,GL_UNSIGNED_BYTE,backImage.ptr());
@@ -102,8 +105,6 @@ int main(int argc,char** argv){
 	int height = 480;
 	const int calibFilesNum = 11;
 
-
-
 	CvSize boardSize = {8,6};//new CvSize(8,6);
 
 	vector< vector<Point2f> > imgPoints;
@@ -121,22 +122,8 @@ int main(int argc,char** argv){
 		cameraNumber = atoi(argv[2]);
 	}
 
-	//start openGL
-	glutInit(&argc, &argv[0]);
-        glutInitDisplayMode( GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH );
-    	glutInitWindowPosition( 100, 100 );
-    	glutInitWindowSize( width, height );
-    	glutCreateWindow( "LETS DO THIS" );    
-
-	init();
-
-	capture = VideoCapture(cameraNumber);
-
 	
-	/*for(int i = 0;i < 48;i++){
-		std::cout << "("<< objPoints[0][i].x << "," << objPoints[0][i].y << "," << objPoints[0][i].z << ")"; 
-		if(i % 8 == 7) std::cout << "\n";
-	}*/
+	capture = VideoCapture(cameraNumber);
 
 	if(doCalib){
 		//Set up object points
@@ -162,35 +149,15 @@ int main(int argc,char** argv){
 				if(i == 0){
 					calibSize = calibImage.size();
 				}
-		
-				//imshow(fileNames[i],calibImage);
 				bool foundBoard = findChessboardCorners(calibImage,boardSize,corners);
 				if(foundBoard){
 					imgPoints.push_back(corners);
-					/*for(int j = 0;j < corners.size();j++){
-						for(int k = -5;k < 6;k++){
-							Vec3b & col = calibImage.at<Vec3b>(corners[j].y+k,corners[j].x);
-							col[0] = 0;   //b
-							col[1] = 0;   //g
-							col[2] = 255; //r
-						}
-					}
-					imshow(fileNames[i],calibImage);*/
 				} else {
 					std::cout << "Failed to find chessboard in " << fileNames[i] << "\n"; 
 				}
 			}
 		}
 
-		/*for(int i = 0;i < 48;i++){
-			std::cout << "("<< imgPoints[0][i].x << "," << imgPoints[0][i].y << ",0)"; 
-			if(i % 8 == 7) std::cout << "\n";
-		}*/
-
-		///float camMatrix[3][3];
-		//OutputArray camMatrix = create(3,3,float);
-		Mat camMatrix = Mat::eye(3,3,CV_64F);
-		Mat distCoeffs = Mat::zeros(4,1,CV_64F);
 		vector<Mat> rvecOut;
 		vector<Mat> tvecOut;
 		calibrateCamera(objPoints,imgPoints,calibSize,camMatrix,distCoeffs,rvecOut,tvecOut);
@@ -221,13 +188,15 @@ int main(int argc,char** argv){
 		}
 	}
 
+	//start openGL
+	glutInit(&argc, &argv[0]);
+        glutInitDisplayMode( GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH );
+    	glutInitWindowPosition( 100, 100 );
+    	glutInitWindowSize( width, height );
+    	glutCreateWindow( "LETS DO THIS" );    
 
+	init();
 
-	/*while(true){
-		capture >> captFeed;
-		imshow("Capture",captFeed);
-	}*/
-	
 	glutMainLoop();
 
 	return 0;
