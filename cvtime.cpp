@@ -39,6 +39,8 @@ void drawFunc(){
 	double imHeight = backImage.size().height;
 	double fovy = 2 * atan((imHeight/2)/fy);
 
+	glDrawPixels(backImage.size().width,backImage.size().height,GL_BGR,GL_UNSIGNED_BYTE,backImage.ptr());
+	
 	glViewport(0,0,imWidth,imHeight);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -47,7 +49,6 @@ void drawFunc(){
 	
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	//glDrawPixels(backImage.size().width,backImage.size().height,GL_BGR,GL_UNSIGNED_BYTE,backImage.ptr());
 
 	gluLookAt(0,0,5,0,0,0,0,1,0);
 
@@ -94,7 +95,7 @@ void display(){
 	     fprintf( stderr, "OpenGL error: %s\n", errString );
      }
 
-     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+     glClear(GL_COLOR_BUFFER_BIT);// | GL_DEPTH_BUFFER_BIT);
 
      drawFunc();
 
@@ -105,7 +106,7 @@ void display(){
 void init(){
 	glClearColor(0.0, 0.0, 0.0, 0.0);
         glShadeModel(GL_SMOOTH);
-	glEnable(GL_DEPTH_TEST);
+	//glEnable(GL_DEPTH_TEST);
         glEnable(GL_NORMALIZE);
 	glMatrixMode(GL_MODELVIEW);
         //glEnable(GL_TEXTURE_2D);
