@@ -5,7 +5,7 @@
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
 #include <GLUT/GLUT.h>
-
+#include <math.h>
 
 using namespace cv;
 
@@ -25,12 +25,43 @@ Mat camMatrix = Mat::eye(3,3,CV_64F);
 Mat distCoeffs = Mat::zeros(4,1,CV_64F);
 
 void drawFunc(){
+	double fx = camMatrix.at<double>(0,0);
+	double fy = camMatrix.at<double>(1,1);
+	double cx = camMatrix.at<double>(2,0);
+	double cy = camMatrix.at<double>(2,1);
+
 	Mat readImage = imread(fileNames[0],CV_LOAD_IMAGE_COLOR);
 	Mat backImage = readImage.clone();
 	undistort(backImage,readImage,camMatrix,distCoeffs);
 	flip(readImage,backImage,0);
 
-	glDrawPixels(backImage.size().width,backImage.size().height,GL_BGR,GL_UNSIGNED_BYTE,backImage.ptr());
+	double imWidth = backImage.size().width;
+	double imHeight = backImage.size().height;
+	double fovy = 2 * atan((imHeight/2)/fy);
+
+	glViewport(0,0,imWidth,imHeight);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluPerspective(fovy,imWidth/imHeight,0.01,100);
+	//gluPerspective(60,backImage.size().width/backImage.size().height,0.01,100);
+	
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	//glDrawPixels(backImage.size().width,backImage.size().height,GL_BGR,GL_UNSIGNED_BYTE,backImage.ptr());
+
+	gluLookAt(0,0,5,0,0,0,0,1,0);
+
+	glPushMatrix();
+
+	//glutSolidSphere(1,200,200);
+
+	glBegin(GL_TRIANGLES);
+		glVertex3f(1,0,0);
+		glVertex3f(0,1,0);
+		glVertex3f(0,0,1);
+	glEnd();
+
+	glPopMatrix();
 }
 
 void mouseFunc(int button, int state, int x, int y){
@@ -47,9 +78,6 @@ void reshape(int w, int h){
 	//win_width = w;
 	//win_height = h;
 	glViewport(0, 0, w, h);
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluPerspective(60, 1, 1, 20);
 }
 
 void idle(){
@@ -67,15 +95,11 @@ void display(){
      }
 
      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-     glMatrixMode(GL_MODELVIEW);
-     glLoadIdentity();
-     gluLookAt(0.0, 2.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
-     glPushMatrix();
 
      drawFunc();
 
-     glPopMatrix();
      glutSwapBuffers();
+     glutPostRedisplay();
 }
 
 void init(){
@@ -83,6 +107,7 @@ void init(){
         glShadeModel(GL_SMOOTH);
 	glEnable(GL_DEPTH_TEST);
         glEnable(GL_NORMALIZE);
+	glMatrixMode(GL_MODELVIEW);
         //glEnable(GL_TEXTURE_2D);
         //glEnable(GL_LIGHTING);
 			    
