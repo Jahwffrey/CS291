@@ -9,8 +9,25 @@
 
 using namespace cv;
 
-void drawFunc(){
+char *fileNames [] = {"../boards/frame0054.jpg",	
+	"../boards/frame0124.jpg",
+	"../boards/frame0174.jpg",
+	"../boards/frame0249.jpg",
+	"../boards/frame0070.jpg",
+	"../boards/frame0141.jpg",
+	"../boards/frame0190.jpg",
+	"../boards/frame0274.jpg",
+	"../boards/frame0107.jpg",
+	"../boards/frame0161.jpg",
+	"../boards/frame0228.jpg"};
 
+
+void drawFunc(){
+	Mat readImage = imread(fileNames[0],CV_LOAD_IMAGE_COLOR);
+	Mat backImage = Mat(readImage);
+	flip(readImage,backImage,0);
+
+	glDrawPixels(backImage.size().width,backImage.size().height,GL_BGR,GL_UNSIGNED_BYTE,backImage.ptr());
 }
 
 void mouseFunc(int button, int state, int x, int y){
@@ -26,7 +43,7 @@ void keyFunc(unsigned char k, int x, int y){
 void reshape(int w, int h){
 	//win_width = w;
 	//win_height = h;
-	glViewport(0, 0, 500, 500);
+	glViewport(0, 0, w, h);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	gluPerspective(60, 1, 1, 20);
@@ -85,17 +102,7 @@ int main(int argc,char** argv){
 	int height = 480;
 	const int calibFilesNum = 11;
 
-	char *fileNames [] = {"../boards/frame0054.jpg",	
-		"../boards/frame0124.jpg",
-		"../boards/frame0174.jpg",
-		"../boards/frame0249.jpg",
-		"../boards/frame0070.jpg",
-		"../boards/frame0141.jpg",
-		"../boards/frame0190.jpg",
-		"../boards/frame0274.jpg",
-		"../boards/frame0107.jpg",
-		"../boards/frame0161.jpg",
-		"../boards/frame0228.jpg"};
+
 
 	CvSize boardSize = {8,6};//new CvSize(8,6);
 
