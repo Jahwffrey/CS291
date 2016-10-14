@@ -9,6 +9,75 @@
 
 using namespace cv;
 
+void drawFunc(){
+
+}
+
+void mouseFunc(int button, int state, int x, int y){
+
+}
+
+void keyFunc(unsigned char k, int x, int y){
+	switch(k){
+
+	}
+}
+
+void reshape(int w, int h){
+	//win_width = w;
+	//win_height = h;
+	glViewport(0, 0, 500, 500);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluPerspective(60, 1, 1, 20);
+}
+
+void idle(){
+	glutPostRedisplay();
+}
+
+
+void display(){
+	// check if there have been any openGL problems
+      GLenum errCode = glGetError();
+     if (errCode != GL_NO_ERROR)
+     {
+	     const GLubyte* errString = gluErrorString(errCode);
+	     fprintf( stderr, "OpenGL error: %s\n", errString );
+     }
+
+     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+     glMatrixMode(GL_MODELVIEW);
+     glLoadIdentity();
+     gluLookAt(0.0, 2.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+     glPushMatrix();
+
+     drawFunc();
+
+     glPopMatrix();
+     glutSwapBuffers();
+}
+
+void init(){
+	glClearColor(0.0, 0.0, 0.0, 0.0);
+        glShadeModel(GL_SMOOTH);
+	glEnable(GL_DEPTH_TEST);
+        glEnable(GL_NORMALIZE);
+        //glEnable(GL_TEXTURE_2D);
+        //glEnable(GL_LIGHTING);
+			    
+        glutDisplayFunc(display);
+	glutReshapeFunc(reshape);
+        glutIdleFunc(idle);
+        glutKeyboardFunc(keyFunc);
+        glutMouseFunc(mouseFunc);
+			        
+        //glLightfv(GL_LIGHT1,GL_AMBIENT,lightAmbient);
+	//glLightfv(GL_LIGHT1, GL_DIFFUSE, lightDiffuse);
+        //glLightfv(GL_LIGHT1, GL_POSITION, lightLoc);
+        //glEnable(GL_LIGHT1);
+}
+
 int main(int argc,char** argv){
 	int cameraNumber;
 	int doCalib;
@@ -51,6 +120,8 @@ int main(int argc,char** argv){
     	glutInitWindowPosition( 100, 100 );
     	glutInitWindowSize( width, height );
     	glutCreateWindow( "LETS DO THIS" );    
+
+	init();
 
 	capture = VideoCapture(cameraNumber);
 
@@ -112,7 +183,7 @@ int main(int argc,char** argv){
 		///float camMatrix[3][3];
 		//OutputArray camMatrix = create(3,3,float);
 		Mat camMatrix = Mat::eye(3,3,CV_64F);
-		Mat distCoeffs = Mat::zeros(8,1,CV_64F);
+		Mat distCoeffs = Mat::zeros(4,1,CV_64F);
 		vector<Mat> rvecOut;
 		vector<Mat> tvecOut;
 		calibrateCamera(objPoints,imgPoints,calibSize,camMatrix,distCoeffs,rvecOut,tvecOut);
@@ -132,7 +203,15 @@ int main(int argc,char** argv){
 	
 		avgError = std::sqrt(totalError/pointNum);
 		std::cout << "Total error: " << totalError << "\nAvg Error: " << avgError << "\n";
-		print the camera intrinsics	
+		std::cout << "Camera Intrinsics:\n";
+		for(int i = 0;i < 3;i++){
+			for(int j = 0;j < 3;j++){
+				std::cout << camMatrix.at<double>(i,j) << "\n";
+			}
+		}
+		for(int i = 0;i < 4;i++){
+			std::cout << distCoeffs.at<double>(i,0) << "\n";
+		}
 	}
 
 
