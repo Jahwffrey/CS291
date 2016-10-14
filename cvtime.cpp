@@ -216,11 +216,12 @@ int main(int argc,char** argv){
 
 
 
-	while(true){
+	/*while(true){
 		capture >> captFeed;
 		imshow("Capture",captFeed);
-	}
+	}*/
 	
+	glutMainLoop();
 
 	return 0;
 }
