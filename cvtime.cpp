@@ -7,6 +7,8 @@
 #include <GLUT/GLUT.h>
 #include <math.h>
 
+#define RADS 57.2958
+
 using namespace cv;
 
 char *fileNames [] = {"../boards/frame0054.jpg",	
@@ -26,6 +28,8 @@ Mat distCoeffs = Mat::zeros(4,1,CV_64F);
 vector< vector<Point3f> > objPoints;
 vector< vector<Point2f> > imgPoints;
 CvSize boardSize = {8,6};//new CvSize(8,6);
+CvSize imgSize = {640,480};
+VideoCapture capture;
 
 void drawFunc(){
 	double fx = camMatrix.at<double>(0,0);
@@ -33,70 +37,61 @@ void drawFunc(){
 	double cx = camMatrix.at<double>(2,0);
 	double cy = camMatrix.at<double>(2,1);
 
-	Mat readImage = imread(fileNames[4],CV_LOAD_IMAGE_COLOR);
-	Mat backImage = readImage.clone();
+	Mat readImage;
+	capture >> readImage;
+	Mat backImage;
+	resize(readImage,backImage,imgSize);
 	undistort(backImage,readImage,camMatrix,distCoeffs);
 	flip(readImage,backImage,0);
 
 	double imWidth = backImage.size().width;
 	double imHeight = backImage.size().height;
-	double fovy = 2 * 57.2958 * atan(imHeight/(2.0 * fx));
+	double fovy = 2 * RADS * atan(imHeight/(2.0 * fx));
 	double aspect = imWidth/imHeight;
 
 	glDrawPixels(backImage.size().width,backImage.size().height,GL_BGR,GL_UNSIGNED_BYTE,backImage.ptr());
-
-
 	//Find camera extrinsics
 	//Find the board
 	vector<Point2f> imgCoords;
-	Mat frameImg = imread(fileNames[4],CV_LOAD_IMAGE_COLOR);
-	bool fndBrd = findChessboardCorners(frameImg,boardSize,imgCoords);
-	if(fndBrd){
-		Mat rvecs;
-		Mat tvecs;
-		solvePnP(Mat(objPoints[0]),imgCoords,camMatrix,distCoeffs,rvecs,tvecs);
-
-		glViewport(0,0,imWidth,imHeight);
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		std::cout << "!" << fovy << "!\n";
-		gluPerspective(fovy,aspect,0.01,100);
-		//gluPerspective(60,backImage.size().width/backImage.size().height,0.01,100);
+	bool fndBrd = findChessboardCorners(backImage,boardSize,imgCoords);
 	
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
-
-		//gluLookAt(0,0,0,0,0,0,0,1,0);
-		glScalef(1.0,-1.0,-1.0);
-		glTranslatef(tvecs.at<double>(0,0),tvecs.at<double>(1,0),tvecs.at<double>(2,0));
-
-		glRotatef(rvecs.at<double>(0,0),1,0,0);
-		glRotatef(rvecs.at<double>(1,0),0,1,0);
-		glRotatef(rvecs.at<double>(2,0),0,0,1);
+	Mat rvecs;
+	Mat tvecs;
+	glViewport(0,0,imWidth,imHeight);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	solvePnP(Mat(objPoints[0]),imgCoords,camMatrix,distCoeffs,rvecs,tvecs);
+	gluPerspective(fovy,aspect,0.01,100);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	if(fndBrd){
 		
-		std::cout << rvecs.at<double>(0,0) << "," << rvecs.at<double>(1,0) << "," << rvecs.at<double>(2,0) << "\n";
-
-		//glScalef(1.0,-1.0,-1.0);
-		//glRotatef(-rvecs.at<double>(0,0),1,0,0);
-		//glRotatef(-rvecs.at<double>(1,0),0,1,0);
-		//glRotatef(-rvecs.at<double>(2,0),0,0,1);
-		//glTranslatef(-tvecs.at<double>(0,0),-tvecs.at<double>(1,0),-tvecs.at<double>(2,0));
-
-		//glTranslatef(0,0,-50);
+		glScalef(1.0,-1.0,-1.0);
+		glTranslatef(tvecs.at<double>(0,0),-tvecs.at<double>(1,0),tvecs.at<double>(2,0));
+		glRotatef(-rvecs.at<double>(0,0) * RADS,1,0,0);
+		glRotatef(rvecs.at<double>(1,0) * RADS,0,1,0);
+		glRotatef(-rvecs.at<double>(2,0) * RADS,0,0,1);
 
 		glPushMatrix();
 
 		glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
-		glutSolidSphere(0.2,20,20);
-
-		glBegin(GL_TRIANGLES);
-			//glVertex3f(1,0,0);
-			//glVertex3f(1,1,0);
-			//glVertex3f(0,1,0);
-		glEnd();
+		
+		glPushMatrix();
+		for(int i = 0;i < 6;i++){
+			glPushMatrix();
+			for(int j = 0;j < 8;j++){
+				glutSolidSphere(0.2,20,20);	
+				glTranslatef(1.0,0,0);
+			}
+			glPopMatrix();
+			glTranslatef(0,1.0,0);
+		}
+		glPopMatrix();
 	
 		glPopMatrix();
-	}
+	 } else {
+
+	 }
 
 }
 
@@ -165,11 +160,6 @@ int main(int argc,char** argv){
 	int width = 640;
 	int height = 480;
 	const int calibFilesNum = 11;
-
-
-
-	Size calibSize;
-	VideoCapture capture;
 	Mat captFeed;
 
 	if(argc != 3){
@@ -179,6 +169,11 @@ int main(int argc,char** argv){
 		doCalib = atoi(argv[1]);
 		cameraNumber = atoi(argv[2]);
 	}
+
+	glutInit(&argc, &argv[0]);
+        glutInitDisplayMode( GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH );
+    	glutInitWindowPosition( 100, 100 );
+    	glutInitWindowSize( width, height );
 
 	
 	capture = VideoCapture(cameraNumber);
@@ -196,29 +191,31 @@ int main(int argc,char** argv){
 			}
 		}
 		//Calibrate from image files checkerboard
-		for(int i = 0;i < calibFilesNum;i++){
+		int foundTimes = 0;
+		while(foundTimes < calibFilesNum){
+			Mat captImage;
 			Mat calibImage;
-			calibImage = imread(fileNames[i],CV_LOAD_IMAGE_COLOR);
+			//calibImage = imread(fileNames[i],CV_LOAD_IMAGE_COLOR);
+			capture >> captImage;
+			resize(captImage,calibImage,imgSize);
 			vector<Point2f> corners;
 
-			if(!calibImage.data){
-				std::cout << "Failed to read " << fileNames[i] << "!!\n";
+			//bool foundBoard = false;
+			bool foundBoard = findChessboardCorners(calibImage,boardSize,corners);
+			if(foundBoard){
+				imgPoints.push_back(corners);
+				foundTimes++;
+				std::cout << "Found board!\n";
 			} else {
-				if(i == 0){
-					calibSize = calibImage.size();
-				}
-				bool foundBoard = findChessboardCorners(calibImage,boardSize,corners);
-				if(foundBoard){
-					imgPoints.push_back(corners);
-				} else {
-					std::cout << "Failed to find chessboard in " << fileNames[i] << "\n"; 
-				}
+				std::cout << "Did not find board!\n";
 			}
+			imshow("calibrating",calibImage);
+			waitKey(100);
 		}
 
 		vector<Mat> rvecOut;
 		vector<Mat> tvecOut;
-		calibrateCamera(objPoints,imgPoints,calibSize,camMatrix,distCoeffs,rvecOut,tvecOut);
+		calibrateCamera(objPoints,imgPoints,imgSize,camMatrix,distCoeffs,rvecOut,tvecOut);
 
 		//Reprojection error
 		double totalError;
@@ -246,12 +243,9 @@ int main(int argc,char** argv){
 		}
 	}
 
+
 	//start openGL
-	glutInit(&argc, &argv[0]);
-        glutInitDisplayMode( GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH );
-    	glutInitWindowPosition( 100, 100 );
-    	glutInitWindowSize( width, height );
-    	glutCreateWindow( "LETS DO THIS" );    
+	    	glutCreateWindow( "LETS DO THIS" );    
 
 	init();
 
