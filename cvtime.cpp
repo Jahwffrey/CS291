@@ -23,6 +23,9 @@ char *fileNames [] = {"../boards/frame0054.jpg",
 
 Mat camMatrix = Mat::eye(3,3,CV_64F);
 Mat distCoeffs = Mat::zeros(4,1,CV_64F);
+vector< vector<Point3f> > objPoints;
+vector< vector<Point2f> > imgPoints;
+CvSize boardSize = {8,6};//new CvSize(8,6);
 
 void drawFunc(){
 	double fx = camMatrix.at<double>(0,0);
@@ -30,39 +33,71 @@ void drawFunc(){
 	double cx = camMatrix.at<double>(2,0);
 	double cy = camMatrix.at<double>(2,1);
 
-	Mat readImage = imread(fileNames[0],CV_LOAD_IMAGE_COLOR);
+	Mat readImage = imread(fileNames[4],CV_LOAD_IMAGE_COLOR);
 	Mat backImage = readImage.clone();
 	undistort(backImage,readImage,camMatrix,distCoeffs);
 	flip(readImage,backImage,0);
 
 	double imWidth = backImage.size().width;
 	double imHeight = backImage.size().height;
-	double fovy = 2 * atan((imHeight/2)/fy);
+	double fovy = 2 * 57.2958 * atan(imHeight/(2.0 * fx));
+	double aspect = imWidth/imHeight;
 
 	glDrawPixels(backImage.size().width,backImage.size().height,GL_BGR,GL_UNSIGNED_BYTE,backImage.ptr());
+
+
+	//Find camera extrinsics
+	//Find the board
+	vector<Point2f> imgCoords;
+	Mat frameImg = imread(fileNames[4],CV_LOAD_IMAGE_COLOR);
+	bool fndBrd = findChessboardCorners(frameImg,boardSize,imgCoords);
+	if(fndBrd){
+		Mat rvecs;
+		Mat tvecs;
+		solvePnP(Mat(objPoints[0]),imgCoords,camMatrix,distCoeffs,rvecs,tvecs);
+
+		glViewport(0,0,imWidth,imHeight);
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		std::cout << "!" << fovy << "!\n";
+		gluPerspective(fovy,aspect,0.01,100);
+		//gluPerspective(60,backImage.size().width/backImage.size().height,0.01,100);
 	
-	glViewport(0,0,imWidth,imHeight);
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluPerspective(fovy,imWidth/imHeight,0.01,100);
-	//gluPerspective(60,backImage.size().width/backImage.size().height,0.01,100);
+		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
+
+		//gluLookAt(0,0,0,0,0,0,0,1,0);
+		glScalef(1.0,-1.0,-1.0);
+		glTranslatef(tvecs.at<double>(0,0),tvecs.at<double>(1,0),tvecs.at<double>(2,0));
+
+		glRotatef(rvecs.at<double>(0,0),1,0,0);
+		glRotatef(rvecs.at<double>(1,0),0,1,0);
+		glRotatef(rvecs.at<double>(2,0),0,0,1);
+		
+		std::cout << rvecs.at<double>(0,0) << "," << rvecs.at<double>(1,0) << "," << rvecs.at<double>(2,0) << "\n";
+
+		//glScalef(1.0,-1.0,-1.0);
+		//glRotatef(-rvecs.at<double>(0,0),1,0,0);
+		//glRotatef(-rvecs.at<double>(1,0),0,1,0);
+		//glRotatef(-rvecs.at<double>(2,0),0,0,1);
+		//glTranslatef(-tvecs.at<double>(0,0),-tvecs.at<double>(1,0),-tvecs.at<double>(2,0));
+
+		//glTranslatef(0,0,-50);
+
+		glPushMatrix();
+
+		glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+		glutSolidSphere(0.2,20,20);
+
+		glBegin(GL_TRIANGLES);
+			//glVertex3f(1,0,0);
+			//glVertex3f(1,1,0);
+			//glVertex3f(0,1,0);
+		glEnd();
 	
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
+		glPopMatrix();
+	}
 
-	gluLookAt(0,0,5,0,0,0,0,1,0);
-
-	glPushMatrix();
-
-	//glutSolidSphere(1,200,200);
-
-	glBegin(GL_TRIANGLES);
-		glVertex3f(1,0,0);
-		glVertex3f(0,1,0);
-		glVertex3f(0,0,1);
-	glEnd();
-
-	glPopMatrix();
 }
 
 void mouseFunc(int button, int state, int x, int y){
@@ -131,10 +166,7 @@ int main(int argc,char** argv){
 	int height = 480;
 	const int calibFilesNum = 11;
 
-	CvSize boardSize = {8,6};//new CvSize(8,6);
 
-	vector< vector<Point2f> > imgPoints;
-	vector< vector<Point3f> > objPoints;
 
 	Size calibSize;
 	VideoCapture capture;
