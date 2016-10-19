@@ -25,7 +25,7 @@ Mat distCoeffs = Mat::zeros(4,1,CV_64F);
 vector< vector<Point3f> > objPoints;
 vector< vector<Point2f> > imgPoints;
 CvSize boardSize = {8,6};//new CvSize(8,6);
-CvSize imgSize;// = {640,480};
+CvSize imgSize = {640,480};
 
 int main(int argc,char** argv){
 	const int calibFilesNum = 11;
@@ -42,12 +42,11 @@ int main(int argc,char** argv){
 		}
 	}
 	//Calibrate from image files checkerboard
-	for(int i = 0;i < calibFilesNum;i++){
+	/*for(int i = 0;i < calibFilesNum;i++){
+		Mat loadImage;
 		Mat calibImage;
-		calibImage = imread(fileNames[i],CV_LOAD_IMAGE_COLOR);
-		if(i == 0){
-			imgSize = calibImage.size();
-		}
+		loadImage = imread(fileNames[i],CV_LOAD_IMAGE_COLOR);
+		resize(loadImage,calibImage,imgSize);
 		vector<Point2f> corners;
 		bool foundBoard = findChessboardCorners(calibImage,boardSize,corners);
 		if(foundBoard){
@@ -55,6 +54,29 @@ int main(int argc,char** argv){
 			std::cout << "Found board!\n";
 		} else {
 			std::cout << "Did not found board in " << fileNames[i]  <<"!\n";
+		}
+	}*/
+	
+	int foundNum = 0;
+	VideoCapture capt;
+	capt = VideoCapture(0);
+	while(foundNum < 11){
+		Mat loadImage;
+		Mat calibImage;
+		capt >> loadImage;
+		resize(loadImage,calibImage,imgSize);
+		imshow("Press space to capture image",calibImage);
+		vector<Point2f> corners;
+		int key = waitKey(10);
+	       	if(key != -1){	
+			bool foundBoard = findChessboardCorners(calibImage,boardSize,corners);
+			if(foundBoard){
+				imgPoints.push_back(corners);
+				std::cout << "Found board!\n";
+				foundNum++;
+			} else {
+				std::cout << "Did not found board!\n";
+			}
 		}
 	}
 

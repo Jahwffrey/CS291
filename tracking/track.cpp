@@ -29,14 +29,16 @@ void drawFunc(){
 	Mat readImage;
 	capture >> readImage;
 	Mat backImage;
-	undistort(readImage,backImage,camMatrix,distCoeffs);
-	resize(backImage,readImage,imgSize);
+	resize(readImage,backImage,imgSize);
+	undistort(backImage,readImage,camMatrix,distCoeffs);
+	//undistort(readImage,backImage,camMatrix,distCoeffs);
+	//resize(backImage,readImage,imgSize);
 	flip(readImage,backImage,0);
 
-	double imWidth = backImage.size().width;
-	double imHeight = backImage.size().height;
-	double fovy = 2 * RADS * atan(imHeight/(2.0 * fx));
-	double aspect = imWidth/imHeight;
+	double imWidth = imgSize.width;
+	double imHeight = imgSize.height;
+	double fovy = 2 * RADS * atan(imHeight/(2.0 * fy));
+	double aspect = (fy/fx) * (imWidth/imHeight);
 
 	glDrawPixels(backImage.size().width,backImage.size().height,GL_BGR,GL_UNSIGNED_BYTE,backImage.ptr());
 	//Find camera extrinsics
@@ -44,30 +46,59 @@ void drawFunc(){
 	vector<Point2f> imgCoords;
 	bool fndBrd = findChessboardCorners(backImage,boardSize,imgCoords);
 	
-	Mat rvecs;
-	Mat tvecs;
 	glViewport(0,0,imWidth,imHeight);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	if(fndBrd){
+		Mat rvecs;
+		Mat tvecs;
+		Mat rotMat;
+		Mat endMat;
 		solvePnP(Mat(objPoints),imgCoords,camMatrix,distCoeffs,rvecs,tvecs);
+		rvecs.at<double>(1,0) = -rvecs.at<double>(1,0);
+		Rodrigues(rvecs,rotMat);
+
+		//endMat = (Mat_<double>(4,4) << rotMat.at<double>(0,0),rotMat.at<double>(1,0),rotMat.at<double>(2,0),tvecs.at<double>(0,0),
+		/*double multMat[16] =  {rotMat.at<double>(0,0),rotMat.at<double>(1,0),rotMat.at<double>(2,0),tvecs.at<double>(0,0),
+					       rotMat.at<double>(0,1),rotMat.at<double>(1,1),rotMat.at<double>(2,1),tvecs.at<double>(1,0),
+					       rotMat.at<double>(0,2),rotMat.at<double>(1,2),rotMat.at<double>(2,2),tvecs.at<double>(2,0),
+					       0,0,0,1};
+		*/
+
+
+		double multMat[16] =  {	rotMat.at<double>(0,0),rotMat.at<double>(0,1),rotMat.at<double>(0,2),0,
+				    	rotMat.at<double>(1,0),rotMat.at<double>(1,1),rotMat.at<double>(1,2),0,
+				    	rotMat.at<double>(2,0),rotMat.at<double>(2,1),rotMat.at<double>(2,2),0,
+					tvecs.at<double>(0,0), -tvecs.at<double>(1,0), tvecs.at<double>(2,0),1};
+		
+
+
 		gluPerspective(fovy,aspect,0.01,100);
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 	
 		
 		glScalef(1.0,-1.0,-1.0);	
-		glTranslatef(tvecs.at<double>(0,0),-tvecs.at<double>(1,0),tvecs.at<double>(2,0));
+		
+		/*glTranslatef(tvecs.at<double>(0,0),-tvecs.at<double>(1,0),tvecs.at<double>(2,0));
 		glRotatef(-rvecs.at<double>(0,0) * RADS,1,0,0);
 		glRotatef(rvecs.at<double>(1,0) * RADS,0,1,0);
-		glRotatef(-rvecs.at<double>(2,0) * RADS,0,0,1);
+		glRotatef(-rvecs.at<double>(2,0) * RADS,0,0,1);*/
+
+		//glMultMatrixd(&endMat);
+		glMultMatrixd(multMat);
+
+		
 
 		glPushMatrix();
 
 		glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
 		
 		glPushMatrix();
-		for(int i = 0;i < 6;i++){
+		glRotatef(-90,1,0,0);
+		glTranslatef(2.5,1.5,-3.5);
+		glutSolidTeapot(3);
+		/*for(int i = 0;i < 6;i++){
 			glPushMatrix();
 			for(int j = 0;j < 8;j++){
 				glutSolidSphere(0.2,20,20);	
@@ -75,7 +106,7 @@ void drawFunc(){
 			}
 			glPopMatrix();
 			glTranslatef(0,1.0,0);
-		}
+		}*/
 		glPopMatrix();
 	
 		glPopMatrix();
@@ -158,7 +189,7 @@ int main(int argc,char** argv){
 	glutInit(&argc, &argv[0]);
         glutInitDisplayMode( GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH );
     	glutInitWindowPosition( 100, 100 );
-    	glutInitWindowSize( imgSize.width, imgSize.height );
+    	glutInitWindowSize( imgSize.width, imgSize.height);
 
 	capture = VideoCapture(cameraNumber);
 
