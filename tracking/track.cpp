@@ -29,8 +29,8 @@ void drawFunc(){
 	Mat readImage;
 	capture >> readImage;
 	Mat backImage;
-	resize(readImage,backImage,imgSize);
-	undistort(backImage,readImage,camMatrix,distCoeffs);
+	undistort(readImage,backImage,camMatrix,distCoeffs);
+	resize(backImage,readImage,imgSize);
 	flip(readImage,backImage,0);
 
 	double imWidth = backImage.size().width;
