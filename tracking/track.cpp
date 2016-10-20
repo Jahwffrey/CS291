@@ -21,6 +21,10 @@ CvSize imgSize = {640,480};
 VideoCapture capture;
 int whichDraw = 0;
 
+GLfloat lightAmbient[] = {0.5,0.5,0.5,1};
+GLfloat lightDiffuse[] = {1,1,1,1};
+GLfloat lightLoc[] = {0,0,20,1};
+
 void drawFunc(){
 	double fx = camMatrix.at<double>(0,0);
 	double fy = camMatrix.at<double>(1,1);
@@ -41,7 +45,9 @@ void drawFunc(){
 	double fovy = 2 * RADS * atan(imHeight/(2.0 * fy));
 	double aspect = (fy/fx) * (imWidth/imHeight);
 
+	glDisable(GL_DEPTH_TEST);
 	glDrawPixels(backImage.size().width,backImage.size().height,GL_BGR,GL_UNSIGNED_BYTE,backImage.ptr());
+	glEnable(GL_DEPTH_TEST);
 	//Find camera extrinsics
 	//Find the board
 	vector<Point2f> imgCoords;
@@ -101,7 +107,6 @@ void mouseFunc(int button, int state, int x, int y){
 }
 
 void keyFunc(unsigned char k, int x, int y){
-	std::cout << "" << k << "\n";
 	switch(k){
 		case 's':
 			whichDraw = (whichDraw + 1) % 2;
@@ -129,7 +134,7 @@ void display(){
 	     fprintf( stderr, "OpenGL error: %s\n", errString );
      }
 
-     glClear(GL_COLOR_BUFFER_BIT);// | GL_DEPTH_BUFFER_BIT);
+     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
      drawFunc();
 
@@ -140,11 +145,12 @@ void display(){
 void init(){
 	glClearColor(0.0, 0.0, 0.0, 0.0);
         glShadeModel(GL_SMOOTH);
-	//glEnable(GL_DEPTH_TEST);
-        glEnable(GL_NORMALIZE);
+	glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LEQUAL);
+	glEnable(GL_NORMALIZE);
 	glMatrixMode(GL_MODELVIEW);
         //glEnable(GL_TEXTURE_2D);
-        //glEnable(GL_LIGHTING);
+        glEnable(GL_LIGHTING);
 			    
         glutDisplayFunc(display);
 	glutReshapeFunc(reshape);
@@ -152,10 +158,10 @@ void init(){
         glutKeyboardFunc(keyFunc);
         glutMouseFunc(mouseFunc);
 			        
-        //glLightfv(GL_LIGHT1,GL_AMBIENT,lightAmbient);
-	//glLightfv(GL_LIGHT1, GL_DIFFUSE, lightDiffuse);
-        //glLightfv(GL_LIGHT1, GL_POSITION, lightLoc);
-        //glEnable(GL_LIGHT1);
+        glLightfv(GL_LIGHT1,GL_AMBIENT,lightAmbient);
+	glLightfv(GL_LIGHT1, GL_DIFFUSE, lightDiffuse);
+        glLightfv(GL_LIGHT1, GL_POSITION, lightLoc);
+        glEnable(GL_LIGHT1);
 }
 
 int main(int argc,char** argv){
@@ -207,7 +213,7 @@ int main(int argc,char** argv){
 	file.close();
 
 	//start openGL
-	glutCreateWindow( "LETS DO THIS" );    
+	glutCreateWindow( "Press 's' to switch models!" );    
 
 	init();
 
