@@ -51,10 +51,11 @@ int main(int argc,char** argv){
 	}
 	//Calibrate from image files checkerboard
 	/*for(int i = 0;i < calibFilesNum;i++){
-		Mat loadImage;
+		//Mat loadImage;
 		Mat calibImage;
-		loadImage = imread(fileNames[i],CV_LOAD_IMAGE_COLOR);
-		resize(loadImage,calibImage,imgSize);
+		calibImage = imread(fileNames[i],CV_LOAD_IMAGE_COLOR);
+		//resize(loadImage,calibImage,imgSize);
+		imgSize = calibImage.size();
 		vector<Point2f> corners;
 		bool foundBoard = findChessboardCorners(calibImage,boardSize,corners);
 		if(foundBoard){
@@ -106,8 +107,6 @@ int main(int argc,char** argv){
 	}
 	
 	avgError = std::sqrt(totalError/pointNum);
-	std::cout << "Total error: " << totalError << "\nAvg Error: " << avgError << "\n";
-	std::cout << "Camera Intrinsics:\n";
 	for(int i = 0;i < 3;i++){
 		for(int j = 0;j < 3;j++){
 			std::cout << camMatrix.at<double>(i,j) << "\n";
@@ -116,6 +115,29 @@ int main(int argc,char** argv){
 	for(int i = 0;i < 4;i++){
 		std::cout << distCoeffs.at<double>(i,0) << "\n";
 	}
+	std::cout << "Camera Intrinsics:\n";
+	
+	for(int i = 0;i < 3;i++){
+		for(int j = 0;j < 3;j++){
+			std::cout << camMatrix.at<double>(i,j) << " ";
+		}
+		std::cout << "\n";
+	}
+
+	std::cout << "\nDistortion parameters: k1, k2, p1, p2\n";
+	for(int i = 0;i < 4;i++){
+		std::cout << distCoeffs.at<double>(i,0) << ", ";
+	}
+
+	std::cout << "\n";
+
+	std::cout << "Total error: " << totalError << "\nAvg Error: " << avgError << "\n";
+
+	std::cout << "Vertical FOV: "  << ( 2 * RADS * atan(imgSize.height/(2.0 * camMatrix.at<double>(0,0)))) << "\n";
+	std::cout << "Horizontal FOV: "  << ( 2 * RADS * atan(imgSize.width/(2.0 * camMatrix.at<double>(1,1)))) << "\n";
+	std::cout << "fx: " << camMatrix.at<double>(0,0) << "\n";
+	std::cout << "fy: " << camMatrix.at<double>(1,1) << "\n";
+	std::cout << "principle point: (" << camMatrix.at<double>(0,2) << " , " << camMatrix.at<double>(1,2) << ")\n";
 
 	return 0;
 }

@@ -28,8 +28,6 @@ GLfloat lightLoc[] = {0,0,20,1};
 void drawFunc(){
 	double fx = camMatrix.at<double>(0,0);
 	double fy = camMatrix.at<double>(1,1);
-	double cx = camMatrix.at<double>(2,0);
-	double cy = camMatrix.at<double>(2,1);
 
 	Mat readImage;
 	capture >> readImage;
