@@ -19,6 +19,7 @@ vector<Point3f> objPoints;
 CvSize boardSize = {8,6};
 CvSize imgSize = {640,480};
 VideoCapture capture;
+int whichDraw = 0;
 
 void drawFunc(){
 	double fx = camMatrix.at<double>(0,0);
@@ -57,63 +58,42 @@ void drawFunc(){
 		solvePnP(Mat(objPoints),imgCoords,camMatrix,distCoeffs,rvecs,tvecs);
 		rvecs.at<double>(1,0) = -rvecs.at<double>(1,0);
 		Rodrigues(rvecs,rotMat);
-
-		//endMat = (Mat_<double>(4,4) << rotMat.at<double>(0,0),rotMat.at<double>(1,0),rotMat.at<double>(2,0),tvecs.at<double>(0,0),
-		/*double multMat[16] =  {rotMat.at<double>(0,0),rotMat.at<double>(1,0),rotMat.at<double>(2,0),tvecs.at<double>(0,0),
-					       rotMat.at<double>(0,1),rotMat.at<double>(1,1),rotMat.at<double>(2,1),tvecs.at<double>(1,0),
-					       rotMat.at<double>(0,2),rotMat.at<double>(1,2),rotMat.at<double>(2,2),tvecs.at<double>(2,0),
-					       0,0,0,1};
-		*/
-
-
 		double multMat[16] =  {	rotMat.at<double>(0,0),rotMat.at<double>(0,1),rotMat.at<double>(0,2),0,
 				    	rotMat.at<double>(1,0),rotMat.at<double>(1,1),rotMat.at<double>(1,2),0,
 				    	rotMat.at<double>(2,0),rotMat.at<double>(2,1),rotMat.at<double>(2,2),0,
 					tvecs.at<double>(0,0), -tvecs.at<double>(1,0), tvecs.at<double>(2,0),1};
-		
-
-
 		gluPerspective(fovy,aspect,0.01,100);
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
-	
-		
 		glScalef(1.0,-1.0,-1.0);	
-		
-		/*glTranslatef(tvecs.at<double>(0,0),-tvecs.at<double>(1,0),tvecs.at<double>(2,0));
-		glRotatef(-rvecs.at<double>(0,0) * RADS,1,0,0);
-		glRotatef(rvecs.at<double>(1,0) * RADS,0,1,0);
-		glRotatef(-rvecs.at<double>(2,0) * RADS,0,0,1);*/
-
-		//glMultMatrixd(&endMat);
 		glMultMatrixd(multMat);
-
-		
-
 		glPushMatrix();
 
 		glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
 		
 		glPushMatrix();
-		glRotatef(-90,1,0,0);
-		glTranslatef(2.5,1.5,-3.5);
-		glutSolidTeapot(3);
-		/*for(int i = 0;i < 6;i++){
-			glPushMatrix();
-			for(int j = 0;j < 8;j++){
-				glutSolidSphere(0.2,20,20);	
-				glTranslatef(1.0,0,0);
+		if(whichDraw == 0){
+			glRotatef(-90,1,0,0);
+			glTranslatef(2.5,1.5,-3.5);
+			glutSolidTeapot(3);
+		} else {
+			glTranslatef(0.2,-4.8,0);
+			for(int i = 0;i < 6;i++){
+				glPushMatrix();
+				for(int j = 0;j < 8;j++){
+					glutSolidSphere(0.2,20,20);	
+					glTranslatef(1.0,0,0);
+				}
+				glPopMatrix();
+				glTranslatef(0,1.0,0);
 			}
-			glPopMatrix();
-			glTranslatef(0,1.0,0);
-		}*/
+		}
 		glPopMatrix();
 	
 		glPopMatrix();
 	 } else {
 
 	 }
-
 }
 
 void mouseFunc(int button, int state, int x, int y){
@@ -121,8 +101,11 @@ void mouseFunc(int button, int state, int x, int y){
 }
 
 void keyFunc(unsigned char k, int x, int y){
+	std::cout << "" << k << "\n";
 	switch(k){
-
+		case 's':
+			whichDraw = (whichDraw + 1) % 2;
+			break;
 	}
 }
 

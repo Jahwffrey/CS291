@@ -29,7 +29,15 @@ CvSize imgSize = {640,480};
 
 int main(int argc,char** argv){
 	const int calibFilesNum = 11;
-	
+	int camNum = 0;
+
+	if(argc != 2){
+		std::cerr << "Please provide camera number on command line!\n";
+		exit(0);
+	} else {
+		camNum = atoi(argv[1]);
+	}
+
 	//Set up object points
 	for(int im = 0;im < calibFilesNum;im++){
 		vector<Point3f> newVect;
@@ -59,7 +67,7 @@ int main(int argc,char** argv){
 	
 	int foundNum = 0;
 	VideoCapture capt;
-	capt = VideoCapture(0);
+	capt = VideoCapture(camNum);
 	while(foundNum < 11){
 		Mat loadImage;
 		Mat calibImage;
@@ -75,7 +83,7 @@ int main(int argc,char** argv){
 				std::cout << "Found board!\n";
 				foundNum++;
 			} else {
-				std::cout << "Did not found board!\n";
+				std::cout << "Did not find board!\n";
 			}
 		}
 	}
